@@ -41,3 +41,6 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+*.exe
+Debug/QueryProcessingEngine.exe
+Debug/QueryProcessingEngine.pdb
