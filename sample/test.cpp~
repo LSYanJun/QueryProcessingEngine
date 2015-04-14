@@ -1,0 +1,23 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <vector>
+#include <iostream>
+
+using namespace std;
+
+struct  Sal{
+	char	*cust;
+	char	*prod;
+	short    dd;
+	short    mm;
+	short	 yy;
+	char	*state;
+	long	 quant;
+};
+
+int main()
+{
+struct Sal sale_rec;
+
+
+}
