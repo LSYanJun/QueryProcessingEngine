@@ -1,4 +1,4 @@
-/* Processed by ecpg (4.9.0) */
+/* Processed by ecpg (4.8.0) */
 /* These include files are added by the preprocessor */
 #include <ecpglib.h>
 #include <ecpgerrno.h>
@@ -15,20 +15,17 @@
  *  2. In the program (L48), modify [dbname], [username], [password] to
  *     yours ([dbname] is the same as your [username] by default).
  *  3. Preprocessor - $ ecpg -I /usr/include/postgresql sample.pgc
- *  4. Compile      - $ g++ -c -I /usr/include/postgresql/ sample.c
- *  5. Link         - $ g++ -L /usr/include/postgresql/ sample.o -lecpg -o sample
+ *  4. Compile      - $ gcc -c -I /usr/include/postgresql/ sample.c
+ *  5. Link         - $ gcc -L /usr/include/postgresql/ sample.o -lecpg -o sample
  *  6. Execute      - $ ./sample
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <vector>
-#include <iostream>
-
-using namespace std;
+#include <string.h>
 
 /* exec sql begin declare section */
-  
+ 
 		
 		
 	    
@@ -36,34 +33,33 @@ using namespace std;
 		 
 		
 		 
+	
 
-  
-struct Sal { 
-#line 24 "sample.pgc"
+#line 28 "sample.pgc"
+ struct { 
+#line 21 "sample.pgc"
  char * cust ;
  
-#line 25 "sample.pgc"
+#line 22 "sample.pgc"
  char * prod ;
  
-#line 26 "sample.pgc"
+#line 23 "sample.pgc"
  short dd ;
  
-#line 27 "sample.pgc"
+#line 24 "sample.pgc"
  short mm ;
  
-#line 28 "sample.pgc"
+#line 25 "sample.pgc"
  short yy ;
  
-#line 29 "sample.pgc"
+#line 26 "sample.pgc"
  char * state ;
  
-#line 30 "sample.pgc"
+#line 27 "sample.pgc"
  long quant ;
- } ; 
-#line 32 "sample.pgc"
- struct Sal sale_rec ;
+ } sale_rec ;
 /* exec sql end declare section */
-#line 33 "sample.pgc"
+#line 29 "sample.pgc"
 
 
 #line 1 "/usr/include/postgresql/sqlca.h"
@@ -134,109 +130,239 @@ struct sqlca_t *ECPGget_sqlca(void);
 
 #endif
 
-#line 34 "sample.pgc"
+#line 30 "sample.pgc"
 
 
-vector<struct Sal> abc;
+struct {
+	bool flag;
+	char cust[21];
+	long sum_1_quant;
+	short count_1_quant;
+	long sum_2_quant;
+	short count_2_quant;
+	long sum_3_quant;
+	short count_3_quant;
+} MFS[500];
+
 //----------------------------------------------------------------------
 // FUNCTION PROTOTYPE declaration
 //----------------------------------------------------------------------
 void	output_record(); //output records to the console
-
+void	initialMFS();
+unsigned int	hashFunc(char*);
 //----------------------------------------------------------------------
 int main(int argc, char* argv[])
 //----------------------------------------------------------------------
 {
+
+   initialMFS();
    //----------------------------------------------------------------------
    // DATABASE CONNECTION
    //----------------------------------------------------------------------
    { ECPGconnect(__LINE__, 0, "cs562@localhost:5432" , "postgres" , "cs562" , NULL, 0); }
-#line 49 "sample.pgc"
+#line 58 "sample.pgc"
 
    /* exec sql whenever sqlerror  sqlprint ; */
-#line 50 "sample.pgc"
+#line 59 "sample.pgc"
 
 
    //----------------------------------------------------------------------
    // PRINT TITLE
    //----------------------------------------------------------------------   
-   cout << " CUST  | PROD    | DAY | MON | YEAR | STATE | QUANT \n";
-   cout << "-------+---------+-----+-----+------+-------+-------\n";
-   
+   printf(" CUST  | avg(x.sale) | avg(y.sale) | avg(z.sale)  \n");
+   printf("-------+-------------+-------------+------------\n");
    //----------------------------------------------------------------------
    // READ RECORDS
    //----------------------------------------------------------------------
    /* declare mycursor cursor for select * from sales */
-#line 61 "sample.pgc"
+#line 69 "sample.pgc"
 
    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "set transaction read only", ECPGt_EOIT, ECPGt_EORT);
-#line 62 "sample.pgc"
+#line 70 "sample.pgc"
 
 if (sqlca.sqlcode < 0) sqlprint();}
-#line 62 "sample.pgc"
+#line 70 "sample.pgc"
 
    // Open cursor
    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "declare mycursor cursor for select * from sales", ECPGt_EOIT, ECPGt_EORT);
-#line 64 "sample.pgc"
+#line 72 "sample.pgc"
 
 if (sqlca.sqlcode < 0) sqlprint();}
-#line 64 "sample.pgc"
+#line 72 "sample.pgc"
 
    // Fetch Data
    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "fetch from mycursor", ECPGt_EOIT, 
-	ECPGt_char,&(sale_rec.cust),(long)0,(long)1,sizeof( struct Sal ), 
+	ECPGt_char,&(sale_rec.cust),(long)0,(long)1,(1)*sizeof(char), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_char,&(sale_rec.prod),(long)0,(long)1,sizeof( struct Sal ), 
+	ECPGt_char,&(sale_rec.prod),(long)0,(long)1,(1)*sizeof(char), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_short,&(sale_rec.dd),(long)1,(long)1,sizeof( struct Sal ), 
+	ECPGt_short,&(sale_rec.dd),(long)1,(long)1,sizeof(short), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_short,&(sale_rec.mm),(long)1,(long)1,sizeof( struct Sal ), 
+	ECPGt_short,&(sale_rec.mm),(long)1,(long)1,sizeof(short), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_short,&(sale_rec.yy),(long)1,(long)1,sizeof( struct Sal ), 
+	ECPGt_short,&(sale_rec.yy),(long)1,(long)1,sizeof(short), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_char,&(sale_rec.state),(long)0,(long)1,sizeof( struct Sal ), 
+	ECPGt_char,&(sale_rec.state),(long)0,(long)1,(1)*sizeof(char), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_long,&(sale_rec.quant),(long)1,(long)1,sizeof( struct Sal ), 
+	ECPGt_long,&(sale_rec.quant),(long)1,(long)1,sizeof(long), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);
-#line 66 "sample.pgc"
+#line 74 "sample.pgc"
 
 if (sqlca.sqlcode < 0) sqlprint();}
-#line 66 "sample.pgc"
+#line 74 "sample.pgc"
  //fetch the first row
+
    while (sqlca.sqlcode == 0) {
-      output_record();
-      abc.push_back(sale_rec);
+      //output_record();
+	unsigned int hash = hashFunc(sale_rec.cust);
+	while(MFS[hash].flag!=false)
+	{
+		if(strcmp(MFS[hash].cust,sale_rec.cust)==0) break;
+		else hash=(hash+1)%500;
+	}
+	if(MFS[hash].flag==false)
+	{
+	int i;
+	for(i = 0; sale_rec.cust[i]!='\0'; i++)
+		MFS[hash].cust[i] = sale_rec.cust[i];
+	MFS[hash].cust[i] = '\0';
+	MFS[hash].sum_1_quant = 0;
+	MFS[hash].count_1_quant = 0;
+	MFS[hash].sum_2_quant = 0;
+	MFS[hash].count_2_quant = 0;
+	MFS[hash].sum_3_quant = 0;
+	MFS[hash].count_3_quant = 0;
+	MFS[hash].flag = 1;
+	}
       { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "fetch from mycursor", ECPGt_EOIT, 
-	ECPGt_char,&(sale_rec.cust),(long)0,(long)1,sizeof( struct Sal ), 
+	ECPGt_char,&(sale_rec.cust),(long)0,(long)1,(1)*sizeof(char), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_char,&(sale_rec.prod),(long)0,(long)1,sizeof( struct Sal ), 
+	ECPGt_char,&(sale_rec.prod),(long)0,(long)1,(1)*sizeof(char), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_short,&(sale_rec.dd),(long)1,(long)1,sizeof( struct Sal ), 
+	ECPGt_short,&(sale_rec.dd),(long)1,(long)1,sizeof(short), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_short,&(sale_rec.mm),(long)1,(long)1,sizeof( struct Sal ), 
+	ECPGt_short,&(sale_rec.mm),(long)1,(long)1,sizeof(short), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_short,&(sale_rec.yy),(long)1,(long)1,sizeof( struct Sal ), 
+	ECPGt_short,&(sale_rec.yy),(long)1,(long)1,sizeof(short), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_char,&(sale_rec.state),(long)0,(long)1,sizeof( struct Sal ), 
+	ECPGt_char,&(sale_rec.state),(long)0,(long)1,(1)*sizeof(char), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
-	ECPGt_long,&(sale_rec.quant),(long)1,(long)1,sizeof( struct Sal ), 
+	ECPGt_long,&(sale_rec.quant),(long)1,(long)1,sizeof(long), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);
-#line 70 "sample.pgc"
+#line 98 "sample.pgc"
 
 if (sqlca.sqlcode < 0) sqlprint();}
-#line 70 "sample.pgc"
+#line 98 "sample.pgc"
  //fetch the rest rows
    }
    // Close cursor
-printf(" %-5s |",abc[497].cust);
-printf(" %-7s |",abc[497].prod); 
-cout<<"|"<<abc[497].dd<<"|"<<abc[497].mm<<"|"<<abc[497].yy<<"|"<<abc[497].quant<<endl;
    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "close mycursor", ECPGt_EOIT, ECPGt_EORT);
-#line 76 "sample.pgc"
+#line 101 "sample.pgc"
 
 if (sqlca.sqlcode < 0) sqlprint();}
-#line 76 "sample.pgc"
+#line 101 "sample.pgc"
 
+   //----------------------------------------------------------------------
+
+   // Open cursor
+   { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "declare mycursor cursor for select * from sales", ECPGt_EOIT, ECPGt_EORT);
+#line 105 "sample.pgc"
+
+if (sqlca.sqlcode < 0) sqlprint();}
+#line 105 "sample.pgc"
+
+   // Fetch Data
+   { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "fetch from mycursor", ECPGt_EOIT, 
+	ECPGt_char,&(sale_rec.cust),(long)0,(long)1,(1)*sizeof(char), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_char,&(sale_rec.prod),(long)0,(long)1,(1)*sizeof(char), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_short,&(sale_rec.dd),(long)1,(long)1,sizeof(short), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_short,&(sale_rec.mm),(long)1,(long)1,sizeof(short), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_short,&(sale_rec.yy),(long)1,(long)1,sizeof(short), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_char,&(sale_rec.state),(long)0,(long)1,(1)*sizeof(char), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_long,&(sale_rec.quant),(long)1,(long)1,sizeof(long), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);
+#line 107 "sample.pgc"
+
+if (sqlca.sqlcode < 0) sqlprint();}
+#line 107 "sample.pgc"
+ //fetch the first row
+
+   while (sqlca.sqlcode == 0) {
+	unsigned int hash = hashFunc(sale_rec.cust);
+	while(strcmp(MFS[hash].cust,sale_rec.cust)!=0)
+	{
+		hash=(hash+1)%500;
+	}
+	if(strcmp(sale_rec.state,"NY")==0)
+	{
+		MFS[hash].sum_1_quant+=sale_rec.quant;
+		MFS[hash].count_1_quant++;
+	}
+	else if(strcmp(sale_rec.state,"CT")==0)
+	{
+		MFS[hash].sum_2_quant+=sale_rec.quant;
+		MFS[hash].count_2_quant++;
+	}
+	else if(strcmp(sale_rec.state,"NJ")==0)
+	{
+		MFS[hash].sum_3_quant+=sale_rec.quant;
+		MFS[hash].count_3_quant++;
+	}
+      { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "fetch from mycursor", ECPGt_EOIT, 
+	ECPGt_char,&(sale_rec.cust),(long)0,(long)1,(1)*sizeof(char), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_char,&(sale_rec.prod),(long)0,(long)1,(1)*sizeof(char), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_short,&(sale_rec.dd),(long)1,(long)1,sizeof(short), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_short,&(sale_rec.mm),(long)1,(long)1,sizeof(short), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_short,&(sale_rec.yy),(long)1,(long)1,sizeof(short), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_char,&(sale_rec.state),(long)0,(long)1,(1)*sizeof(char), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_long,&(sale_rec.quant),(long)1,(long)1,sizeof(long), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);
+#line 130 "sample.pgc"
+
+if (sqlca.sqlcode < 0) sqlprint();}
+#line 130 "sample.pgc"
+ //fetch the rest rows
+   }
+   // Close cursor
+   { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "close mycursor", ECPGt_EOIT, ECPGt_EORT);
+#line 133 "sample.pgc"
+
+if (sqlca.sqlcode < 0) sqlprint();}
+#line 133 "sample.pgc"
+
+   //----------------------------------------------------------------------
+
+	int i;
+	for(i = 0; i < 500; i++)
+	{
+		if(MFS[i].flag==0) continue;
+		long avg_1_quant, avg_2_quant, avg_3_quant;
+		if(MFS[i].count_1_quant==0) avg_1_quant=0;
+		else avg_1_quant=MFS[i].sum_1_quant/MFS[i].count_1_quant;
+		if(MFS[i].count_2_quant==0) avg_2_quant=0;
+		else avg_2_quant=MFS[i].sum_2_quant/MFS[i].count_2_quant;
+		if(MFS[i].count_3_quant==0) avg_3_quant=0;
+		else avg_3_quant=MFS[i].sum_3_quant/MFS[i].count_3_quant;
+		if(avg_1_quant>avg_2_quant && avg_1_quant>avg_3_quant)
+		{
+			printf(" %-5s |",MFS[i].cust);   // Customer
+			printf(" %11ld |",avg_1_quant);  // avg(x.sale)
+			printf(" %11ld |",avg_2_quant);  // avg(y.sale)
+			printf(" %11ld \n",avg_3_quant);  // avg(z.sale)
+		}
+	}
 
    return 0;
 }
@@ -251,5 +377,25 @@ void	output_record()  //set of output
 	printf("  %2d |",sale_rec.mm);     // Month
 	printf(" %4d |",sale_rec.yy);      // Year
 	printf(" %-5s |",sale_rec.state);  // State
-	printf(" %5d \n",sale_rec.quant);  // Quantity
+	printf(" %5ld \n",sale_rec.quant);  // Quantity
+}
+
+void	initialMFS()
+{
+	int i;
+	for(i = 0; i < 500; i++)
+	{
+		MFS[i].flag=0;
+	}
+}
+
+unsigned int hashFunc(char* cust)
+{
+	int i;
+	unsigned int hash;
+	for(hash = 0, i = 0; cust[i]!='\0'; i++)
+	{
+		hash = (hash<<4)^(hash>>28)^cust[i];
+	}
+	return (hash%500);
 }
