@@ -1,0 +1,14 @@
+S
+cust, avg_1_quant, avg_2_quant, avg_3_quant
+n
+3
+V
+cust, prod, mm
+F
+avg_1_quant, sum_2_quant, avg_2_quant, sum_3_quant
+o
+1 cust=cust and state='NY'
+2 cust=cust and state='CT'
+3 cust=cust and state='NJ'
+G
+avg_1_quant>avg_2_quant and avg_1_quant>avg_3_quant
