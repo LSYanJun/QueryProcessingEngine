@@ -1,0 +1,11 @@
+server:	cs562
+role: 	postgres
+pw: 	cs562
+port: 	5432
+host: 	localhost
+db:	cs562
+table: 	sales
+
+1. get all the g.a, and group and g.v's aggregates(sum_0_quant)
+2. construct the MF-struct(MFS[500])  (optimization)
+3. deal with the having clause and generate the output

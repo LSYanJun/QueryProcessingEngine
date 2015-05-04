@@ -7,8 +7,10 @@ cust, prod, mm
 F
 avg_1_quant, sum_2_quant, avg_2_quant, sum_3_quant
 o
-1 cust=cust and state='NY'
-2 cust=cust and state='CT'
-3 cust=cust and state='NJ'
+1 cust=cust and prod=prod and state='NY' and quant>sum_2_quant
+2 cust=cust and prod=prod and state='CT'
+3 cust=cust and prod=prod and state='NJ' and quant>sum_2_quant and quant>avg_1_quant
 G
 avg_1_quant>avg_2_quant and avg_1_quant>avg_3_quant
+W
+year=1997
