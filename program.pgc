@@ -21,9 +21,9 @@ EXEC SQL BEGIN DECLARE SECTION;
 struct {
 	char	*cust;
 	char	*prod;
-	short    dd;
-	short    mm;
-	short	 yy;
+	short    day;
+	short    month;
+	short	 year;
 	char	*state;
 	long	 quant;
 }	sale_rec;
@@ -34,13 +34,12 @@ EXEC SQL INCLUDE sqlca;
 struct {
 	bool flag;
 	char cust[21];
-	char prod[21];
-	short mm;
 	long sum_1_quant;
 	short count_1_quant;
 	long sum_2_quant;
 	short count_2_quant;
 	long sum_3_quant;
+	short count_3_quant;
 } MFS[500];
 
 //--second--
@@ -50,7 +49,6 @@ struct {
 
 void	initialMFS();
 unsigned int	hashFunc(char*);
-
 //----------------------------------------------------------------------
 int main(int argc, char* argv[])
 //----------------------------------------------------------------------
@@ -65,40 +63,61 @@ int main(int argc, char* argv[])
 
 //--end second--
    //optimization relative aggrigate functions  assigned: Gong Cheng
-   for(i = 0; i < 2; i++)
-   {
-	   // Open cursor
-	   EXEC SQL OPEN mycursor;
-	   // Fetch Data
-	   EXEC SQL FETCH FROM mycursor INTO :sale_rec; //fetch the first row
-	   while (sqlca.sqlcode == 0) {
-		unsigned int hash = hashFunc();
-		while(strcmp(MFS[hash].cust,sale_rec.cust)!=0)
-		{
-			hash=(hash+1)%500;
-		}
-		if(strcmp(sale_rec.state,"NY")==0)
-		{
-			MFS[hash].sum_1_quant+=sale_rec.quant;
-			MFS[hash].count_1_quant++;
-		}
-		else if(strcmp(sale_rec.state,"CT")==0)
-		{
-			MFS[hash].sum_2_quant+=sale_rec.quant;
-			MFS[hash].count_2_quant++;
-		}
-		else if(strcmp(sale_rec.state,"NJ")==0)
-		{
-			MFS[hash].sum_3_quant+=sale_rec.quant;
-			MFS[hash].count_3_quant++;
-		}
-	     EXEC SQL FETCH FROM mycursor INTO :sale_rec; //fetch the rest rows
-	   }
-	   // Close cursor
-	   EXEC SQL CLOSE mycursor;
-	   //----------------------------------------------------------------------
+   //Scan 1
+   // Open cursor
+   EXEC SQL OPEN mycursor;
+   // Fetch Data
+   EXEC SQL FETCH FROM mycursor INTO :sale_rec; //fetch the first row
+   while (sqlca.sqlcode == 0) {
+    if(sale_rec.year==1997 )
+    {
+	unsigned int hash = hashFunc(sale_rec.cust);
+	unsigned int hashScan;
+	hashScan = hash;
+	while(strcmp(MFS[hashScan].cust, sale_rec.cust) != 0)
+	{
+		hashScan=(hashScan + 1) % 500;
+	}
+	if(strcmp(sale_rec.state, "NY") == 0 && sale_rec.avg_2_quant>1 )
+	{
+		MFS[hashScan].sum_1_quant+=quant;
+		MFS[hashScan].count_1_quant++ ;
+	}
+	if(strcmp(sale_rec.state, "NJ") == 0 && sale_rec.avg_2_quant>1 )
+	{
+		MFS[hashScan].sum_3_quant+=quant;
+		MFS[hashScan].count_3_quant++ ;
+	}
+    }
+     EXEC SQL FETCH FROM mycursor INTO :sale_rec; //fetch the rest rows
    }
+   // Close cursor
+   EXEC SQL CLOSE mycursor;
+   //----------------------------------------------------------------------
 
+	//----------------------------------------------------------------------
+	// PRINT TITLE
+	//----------------------------------------------------------------------
+	printf(" CUST  | AVG_1_QUANT | AVG_2_QUANT | AVG_3_QUANT \n");
+	printf("-------+ ----------- + ----------- + ----------- \n");
+	for(i = 0; i < 500; i++)
+	{
+		if(MFS[i].flag==0) continue;
+		long avg_1_quant, avg_2_quant, avg_3_quant;
+		if(MFS[i].count_1_quant==0) avg_1_quant=0;
+		else avg_1_quant=MFS[i].sum_1_quant/MFS[i].count_1_quant;
+		if(MFS[i].count_2_quant==0) avg_2_quant=0;
+		else avg_2_quant=MFS[i].sum_2_quant/MFS[i].count_2_quant;
+		if(MFS[i].count_3_quant==0) avg_3_quant=0;
+		else avg_3_quant=MFS[i].sum_3_quant/MFS[i].count_3_quant;
+		if(avg_1_quant>avg_2_quant && avg_1_quant>avg_3_quant)
+		{
+			printf(" %-5s |",MFS[i].cust);   // Customer
+			printf(" %11ld |",avg_1_quant);  // avg(x.sale)
+			printf(" %11ld |",avg_2_quant);  // avg(y.sale)
+			printf(" %11ld \n",avg_3_quant);  // avg(z.sale)
+		}
+	}
 //--third--
    return 0;
 }
