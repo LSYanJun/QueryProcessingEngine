@@ -3,14 +3,14 @@ cust, avg_1_quant, avg_2_quant, avg_3_quant
 n
 3
 V
-cust, prod, month
+cust
 F
-avg_1_quant, sum_2_quant, avg_2_quant, sum_3_quant
+avg_1_quant, avg_2_quant, avg_3_quant
 o
-1 cust=cust and month=month and state='NY' and quant>sum_2_quant
-2 cust=cust and month=month and state='CT'
-3 cust=cust and month=month and prod=prod and state='NJ' and quant>sum_2_quant
+1 cust=cust and state='NY'
+2 cust=cust and state='CT'
+3 cust=cust and state='NJ'
 G
 avg_1_quant>avg_2_quant and avg_1_quant>avg_3_quant
 W
-year=1997 and (month=12 and cust<>cust)
+

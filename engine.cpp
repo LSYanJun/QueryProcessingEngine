@@ -326,6 +326,11 @@ void writeSecondPart()
 	"   //----------------------------------------------------------------------" << endl <<
 	"   EXEC SQL CONNECT TO cs562@localhost:5432 USER postgres IDENTIFIED BY cs562;" << endl <<
 	"   EXEC SQL WHENEVER sqlerror sqlprint;" << endl <<
+	"   //----------------------------------------------------------------------" << endl <<
+	"   // READ RECORDS" << endl <<
+	"   //----------------------------------------------------------------------" << endl <<
+	"   EXEC SQL DECLARE mycursor CURSOR FOR SELECT * FROM sales;" << endl <<
+	"   EXEC SQL SET TRANSACTION read only;" << endl <<
 	endl<<"//--end second--"<<endl;
 }
 
@@ -376,9 +381,9 @@ void writeCompleteTable() //assigned: Gong Cheng
 	cout << 
 	"   //optimization relative aggrigate functions  assigned: Gong Cheng" << endl;
 
-	for(int p = 1; p < aggrPrior.size(); p++)
+	for(int p = 0; p < aggrPrior.size(); p++)
 	{
-		cout << "   //Scan " << p << endl <<
+		cout << "   //Scan " << p + 1 << endl <<
 		"   // Open cursor" << endl <<
 		"   EXEC SQL OPEN mycursor;" << endl <<
 		"   // Fetch Data" << endl <<
@@ -406,8 +411,14 @@ void writeCompleteTable() //assigned: Gong Cheng
 		cout << ");" << endl <<
 		"	unsigned int hashScan;" << endl;
 		vector<int> MFvar, EMFvar; // MF 1 to 1, EMF 1 to n
+		bool globalVal = false;
 		for(int q = 0; q < aggrPrior[p].size(); q++) // split the MF variables and EMF variables
 		{
+			if(aggrPrior[p][q] == 0) 
+			{
+				globalVal = true; 
+				continue;
+			}
 			bool MFflag = true; // flag for the MF/EMF variable
 			int varNum = aggrPrior[p][q]; 
 			for(int i = 0; i < V.size(); i++)
@@ -415,8 +426,7 @@ void writeCompleteTable() //assigned: Gong Cheng
 				bool findV = false; // flag for the existance of the grouping attribute
 				for(int j = 0; j < VECO[varNum - 1].size(); j++)
 				{
-					if(VECO[varNum - 1][j].find("="+V[i]) != -1 && 
-					  (VECO[varNum - 1][j].find("="+V[i]) + ("="+V[i]).length()) == VECO[varNum - 1][j].length())
+					if(VECO[varNum - 1][j] == V[i] + "=" + V[i])
 					{
 						findV = true; break;
 					}
@@ -430,6 +440,31 @@ void writeCompleteTable() //assigned: Gong Cheng
 			if(MFflag) MFvar.push_back(varNum);
 			else EMFvar.push_back(varNum);
 		}
+		if(globalVal) // process for grouping attribute aggregates
+		{
+			cout <<
+			"	for(i = 0; i < 500; i++)" << endl <<
+			"	{" << endl <<
+			"		if(MFS[i].flag == 0) continue;" << endl;
+			for(int i = 0; i < F.size(); i++)
+			{
+				string stringVar = "_0_";
+				if(F[i].find(stringVar) != -1)
+				{
+					if(F[i].find("sum") != -1)
+					{
+						string attr = F[i].substr(F[i].find_last_of('_') + 1);
+						cout << "		" << convertAggregates(F[i], "MFS[i]") << "+=" << attr << ";" << endl;
+					}
+					else if(F[i].find("count") != -1)
+					{
+						cout << "		" << convertAggregates(F[i], "MFS[i]") << "++ ;" << endl;
+					}
+				}
+			}
+			cout << "	}" << endl;
+		}
+
 		if(MFvar.size() != 0) // process for MF variable
 		{
 			cout <<
@@ -610,7 +645,6 @@ void writeOutput() //assigned: Yanjun Wu
 
 void writeHashFunc() //assigned: Lingzhi Yuan
 {
-
 }
 
 int convertToInt(string temp)
@@ -645,6 +679,15 @@ string attrType(string attr)
 void setPrior()
 {
 	vector<int> init;
+	bool globalValFlag = false;
+	for(int i = 0; i < F.size(); i++)
+	{
+		if(F[i].find("_0_") != -1)
+		{
+			globalValFlag = true; break;
+		}
+	}
+	if(globalValFlag)
 	init.push_back(0);
 	int count = 0;
 	while(count < N)
@@ -768,10 +811,20 @@ string convertExp(string exp, string argu)
 	}
 	else
 	{
-		attribute = "sale_rec." + attribute;
-		int valueStart = exp.find_first_of("=<>");
-		string value = convertAggregates(exp.substr(valueStart), argu);
-		return parenLeft + attribute + exp.substr(second, valueStart - second) + value; 
+		if(exp.find(attribute, second) != -1)
+		{
+			int valueStart = exp.find_first_not_of("=<>", second);
+			string value = exp.substr(valueStart);
+			value = argu + "." + value;
+			attribute = "sale_rec." + attribute;
+			return parenLeft + attribute + exp.substr(second, valueStart - second) + value; 
+		}
+		else
+		{
+			attribute = "sale_rec." + attribute;
+			string value = convertAggregates(exp.substr(second), argu);
+			return parenLeft + attribute + value; 
+		}
 	}
 }
 string convertAggregates(string agg, string argu)
