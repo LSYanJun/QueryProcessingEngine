@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <cctype>
+#include <algorithm>
 
 using namespace std;
 
@@ -196,6 +198,10 @@ void operandProcess()
 			ss >> temp;
 			if(temp=="") continue;
 			if(temp[temp.size()-1]==',') temp.erase(temp.size()-1,1);
+			if(temp == "and")
+				temp = "&&";
+			else if (temp == "or")
+				temp = "||";
 			VECO[tempN-1].push_back(temp);
 		}
 	}
@@ -207,6 +213,10 @@ void operandProcess()
 		ss >> temp;
 		if(temp=="") continue;
 		if(temp[temp.size()-1]==',') temp.erase(temp.size()-1,1);
+		if(temp == "and")
+			temp = "&&";
+		else if (temp == "or")
+			temp = "||";
 		G.push_back(temp);
 	}
 	ss.clear();
@@ -392,7 +402,60 @@ void writeCompleteTable() //assigned: Gong Cheng
 
 void writeOutput() //assigned: Yanjun Wu
 {
-
+	string title = "";
+	string subTitle = "";
+	string temp = "";
+	for (int i = 0; i < S.size(); i++)
+	{
+		temp = S[i];
+		transform(temp.begin(), temp.end(), temp.begin(), ::toupper);
+		if (S[i] == "cust")
+		{
+			title += " CUST  |";
+			subTitle += "-------+";
+		}
+		else if (S[i] == "prod")
+		{
+			title += " PROD    |";
+			subTitle += "---------+";
+		}
+		else
+		{
+			title += " " + temp + " |";
+			subTitle += " ";
+			for(int j = 0;j < temp.length(); j++)
+				subTitle += "-";
+			subTitle += " +";
+		}
+	}
+	title.replace(title.length() - 1, 1, "\\n");
+	subTitle.replace(subTitle.length() - 1, 1, "\\n");
+	cout << 
+   		"	//----------------------------------------------------------------------" << endl <<
+  		"	// PRINT TITLE" << endl <<
+   		"	//----------------------------------------------------------------------" << endl <<
+   		"	printf(\"" << title << "\");" << endl <<
+	 	"	printf(\"" << subTitle << "\");" << endl <<
+		"	for(i = 0; i < 500; i++)" << endl <<
+		"	{" << endl <<
+		"		if(MFS[i].flag==0) continue;" << endl;
+	
+	cout <<
+		"		long avg_1_quant, avg_2_quant, avg_3_quant;" << endl <<
+		"		if(MFS[i].count_1_quant==0) avg_1_quant=0;" << endl <<
+		"		else avg_1_quant=MFS[i].sum_1_quant/MFS[i].count_1_quant;" << endl <<
+		"		if(MFS[i].count_2_quant==0) avg_2_quant=0;" << endl <<
+		"		else avg_2_quant=MFS[i].sum_2_quant/MFS[i].count_2_quant;" << endl <<
+		"		if(MFS[i].count_3_quant==0) avg_3_quant=0;" << endl <<
+		"		else avg_3_quant=MFS[i].sum_3_quant/MFS[i].count_3_quant;" << endl <<
+		"		if(avg_1_quant>avg_2_quant && avg_1_quant>avg_3_quant)" << endl <<
+		"		{" << endl <<
+		"			printf(\" %-5s |\",MFS[i].cust);   // Customer" << endl <<
+		"			printf(\" %11ld |\",avg_1_quant);  // avg(x.sale)" << endl <<
+		"			printf(\" %11ld |\",avg_2_quant);  // avg(y.sale)" << endl <<
+		"			printf(\" %11ld \\n\",avg_3_quant);  // avg(z.sale)" << endl <<
+		"		}" << endl <<
+		"	}" << endl;
 }
 
 void writeHashFunc() //assigned: Lingzhi Yuan
